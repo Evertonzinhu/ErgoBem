@@ -1,22 +1,64 @@
-// Função para abrir a imagem no lightbox
-function openImageLightbox(img) {
-    var lightbox = document.getElementById('lightbox');
-    var lightboxContent = document.getElementById('lightbox-content');
-    lightbox.style.display = 'flex'; // Exibe o lightbox
-    lightboxContent.innerHTML = '<img src="' + img.src + '" id="lightbox-image" alt="Imagem maior">'; // Exibe a imagem maior
+// Navegação responsiva
+const menuToggle = document.querySelector(".menu-toggle");
+const siteNav = document.querySelector("#site-nav");
+
+if (menuToggle && siteNav) {
+    menuToggle.addEventListener("click", () => {
+        const isOpen = siteNav.classList.toggle("is-open");
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
+        menuToggle.setAttribute("aria-label", isOpen ? "Fechar menu" : "Abrir menu");
+    });
+
+    siteNav.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+            siteNav.classList.remove("is-open");
+            menuToggle.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-label", "Abrir menu");
+        });
+    });
 }
 
-// Função para abrir o vídeo no lightbox
-function openVideoLightbox(videoUrl) {
-    var lightbox = document.getElementById('lightbox');
-    var lightboxContent = document.getElementById('lightbox-content');
-    lightbox.style.display = 'flex'; // Exibe o lightbox
-    lightboxContent.innerHTML = '<iframe width="80%" height="80%" src="' + videoUrl + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'; // Exibe o vídeo
+// Lightbox para ampliar as imagens
+const lightbox = document.getElementById("lightbox");
+const lightboxImage = document.getElementById("lightbox-image");
+const closeButton = document.querySelector(".close-btn");
+let previousFocus = null;
+
+function openLightbox(imageUrl, altText) {
+    if (!lightbox || !lightboxImage) return;
+    previousFocus = document.activeElement;
+    lightboxImage.src = imageUrl;
+    lightboxImage.alt = altText || "Imagem ampliada";
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    closeButton?.focus();
 }
 
-// Função para fechar o lightbox
 function closeLightbox() {
-    var lightbox = document.getElementById('lightbox');
-    lightbox.style.display = 'none'; // Esconde o lightbox
-    document.getElementById('lightbox-content').innerHTML = ''; // Limpa o conteúdo
+    if (!lightbox || !lightboxImage) return;
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    lightboxImage.src = "";
+    document.body.style.overflow = "";
+    previousFocus?.focus();
 }
+
+document.querySelectorAll("[data-lightbox]").forEach((button) => {
+    button.addEventListener("click", () => {
+        const image = button.querySelector("img");
+        openLightbox(button.dataset.lightbox, image?.alt);
+    });
+});
+
+closeButton?.addEventListener("click", closeLightbox);
+
+lightbox?.addEventListener("click", (event) => {
+    if (event.target === lightbox) closeLightbox();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && lightbox?.classList.contains("is-open")) {
+        closeLightbox();
+    }
+});
